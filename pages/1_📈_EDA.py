@@ -2,64 +2,49 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from fungsi import persiapan
+from fungsi import persiapan, plot_time_series, plot_time_series_plotly
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Exploratory Data Analysis", page_icon="📈")
 
 # Memuat data
-df_cuaca = persiapan('data')
+if 'df_cuaca' not in st.session_state:
+    df_cuaca = persiapan('data')
+    st.session_state.df_cuaca = df_cuaca
+df_cuaca = st.session_state.df_cuaca
 
 # Header halaman
 st.title("Analisis Data Cuaca")
 st.markdown("Halaman ini digunakan untuk melakukan analisis eksplorasi data cuaca yang telah diproses.")
 
-# Menampilkan data
-st.subheader("Data Cuaca")
-st.write(df_cuaca)
-
-# Deskripsi statistik
-st.subheader("Deskripsi Statistik")
-st.write(df_cuaca.describe())
-
-# Plot distribusi suhu
-st.subheader("Distribusi Suhu")
-fig, ax = plt.subplots()
-sns.histplot(df_cuaca['suhu_rata2'], bins=20, kde=True, ax=ax)
-ax.set_title("Distribusi Suhu Rata-rata")
-ax.set_xlabel("Suhu Rata-rata (°C)")
-ax.set_ylabel("Frekuensi")
-st.pyplot(fig)
-
-# Plot hubungan suhu dan curah hujan
-st.subheader("Hubungan Suhu Rata-rata dan Curah Hujan")
-fig, ax = plt.subplots()
-sns.scatterplot(data=df_cuaca, x='suhu_rata2', y='curah_hujan', ax=ax)
-ax.set_title("Suhu Rata-rata vs Curah Hujan")
-ax.set_xlabel("Suhu Rata-rata (°C)")
-ax.set_ylabel("Curah Hujan (mm)")
-st.pyplot(fig)
+# Tambahkan opsi "Total Indonesia" ke daftar provinsi
+daftar_provinsi = ['Total Indonesia'] + list(df_cuaca['province_name'].unique())
 
 # Filter data berdasarkan provinsi
 st.subheader("Filter Data Berdasarkan Provinsi")
-provinsi = st.selectbox("Pilih Provinsi", df_cuaca['province_name'].unique())
-filtered_data = df_cuaca[df_cuaca['province_name'] == provinsi]
-st.write(filtered_data)
+provinsi = st.selectbox("Pilih Provinsi", daftar_provinsi)
 
-# Visualisasi suhu rata-rata per provinsi
-st.subheader("Suhu Rata-rata per Provinsi")
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.boxplot(data=df_cuaca, x='province_name', y='suhu_rata2', ax=ax)
-ax.set_title("Suhu Rata-rata per Provinsi")
-ax.set_xlabel("Provinsi")
-ax.set_ylabel("Suhu Rata-rata (°C)")
-ax.tick_params(axis='x', rotation=90)
-st.pyplot(fig)
+# Tangani kasus "Total Indonesia"
+if provinsi == 'Total Indonesia':
+    df_cuaca_prov = df_cuaca.copy() # Membuat salinan agar tidak memodifikasi DataFrame asli
+else:
+    df_cuaca_prov = df_cuaca[df_cuaca['province_name'] == provinsi]
 
-# Menambahkan insight tambahan
-st.subheader("Insight Tambahan")
-st.markdown("""
-- Data menunjukkan distribusi suhu rata-rata cukup simetris pada sebagian besar provinsi.
-- Curah hujan memiliki hubungan yang tidak linear dengan suhu rata-rata.
-- Filter data memungkinkan analisis per provinsi untuk memahami karakteristik lokal.
-""")
+
+# Deskripsi statistik
+st.subheader("Deskripsi Statistik")
+st.write(df_cuaca_prov.describe())
+
+# Daftar variabel yang tersedia untuk dipilih
+pilihan_variabel = ["suhu", "kelembaban", "curah_hujan", "kecepatan_angin", "durasi_sinar_matahari_jam"]
+
+# Membuat dropdown
+variabel_terpilih = st.selectbox("Pilih Variabel:", pilihan_variabel)
+
+# Membuat plot berdasarkan pilihan dropdown
+if variabel_terpilih:  # Pastikan ada variabel yang dipilih
+    try:
+        fig = plot_time_series_plotly(df_cuaca_prov, variabel_terpilih)
+        st.plotly_chart(fig)
+    except ValueError as e:
+        st.error(str(e)) # Menampilkan pesan error jika variabel tidak valid

@@ -48,3 +48,12 @@ if variabel_terpilih:  # Pastikan ada variabel yang dipilih
         st.plotly_chart(fig)
     except ValueError as e:
         st.error(str(e)) # Menampilkan pesan error jika variabel tidak valid
+
+st.sidebar.markdown(
+    """
+    <div style="text-align: center; font-size: 12px; color: gray;">
+        &copy; 2024 Mindstem.id. All rights reserved.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)

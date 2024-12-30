@@ -50,9 +50,9 @@ def persiapan(folder_data):
     df_climate_data = df_climate_data[(df_climate_data.suhu_min > 0) & (df_climate_data.suhu_maks < 50)]
     df_climate_data = df_climate_data[(df_climate_data.suhu_rata2 > 0) & (df_climate_data.suhu_rata2 < 50)]
     df_climate_data = df_climate_data[(df_climate_data.kelembaban_rata2 <= 100)]
+    df_climate_data = df_climate_data[(df_climate_data.durasi_sinar_matahari_jam <= 20)]
     df_climate_data = df_climate_data[(df_climate_data.suhu_maks > df_climate_data.suhu_min)]
-
-    df_climate_data = df_climate_data[df_climate_data.curah_hujan < 500]    
+    df_climate_data = df_climate_data[(df_climate_data.curah_hujan >= 0) & (df_climate_data.curah_hujan < 500)]
 
     return df_climate_data
 
